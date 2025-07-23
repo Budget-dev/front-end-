@@ -1,0 +1,183 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Task Manager</title>
+  <style>
+    body {
+      font-family: sans-serif;
+      background: #f3f4f6;
+      padding: 40px;
+    }
+
+    .form-container, .task {
+      display: flex;
+      gap: 15px;
+      align-items: center;
+      background: white;
+      padding: 20px;
+      border-radius: 12px;
+      box-shadow: 0 6px 18px rgba(0,0,0,0.1);
+      margin-bottom: 20px;
+    }
+
+    input, select {
+      padding: 10px 14px;
+      border-radius: 8px;
+      border: 1px solid #ccc;
+      font-size: 14px;
+    }
+
+    button {
+      padding: 10px 18px;
+      border-radius: 8px;
+      border: none;
+      font-weight: 600;
+      cursor: pointer;
+    }
+
+    .completed {
+      background: #22c55e;
+      color: white;
+    }
+
+    .pending {
+      background: #facc15;
+      color: #000;
+    }
+
+    .task-list {
+      margin-top: 40px;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="form-container">
+    <input type="number" id="serial" placeholder="Serial No" />
+    <select id="input1">
+      <option disabled selected>Demo 1</option>
+      <option>Option A</option>
+      <option>Option B</option>
+    </select>
+    <select id="input2">
+      <option disabled selected>Demo 2</option>
+      <option>Option X</option>
+      <option>Option Y</option>
+    </select>
+    <select id="input3">
+      <option disabled selected>Demo 3</option>
+      <option>Alpha</option>
+      <option>Beta</option>
+    </select>
+    <button id="addBtn" class="pending">Add Task</button>
+  </div>
+
+  <div class="task-list" id="taskList"></div>
+
+  <!-- Firebase SDKs -->
+  <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-firestore-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-auth-compat.js"></script>
+
+  <script>
+    const firebaseConfig = {
+      apiKey: "AIzaSyAANhb1ARzAQMnsJmbexokzAgqrmYm1mJE",
+      authDomain: "junodash-d76ed.firebaseapp.com",
+      projectId: "junodash-d76ed",
+      storageBucket: "junodash-d76ed.appspot.com",
+      messagingSenderId: "920446175505",
+      appId: "1:920446175505:web:d1753097ec1e49739464b0"
+    };
+
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.firestore();
+    const auth = firebase.auth();
+
+    const serial = document.getElementById("serial");
+    const input1 = document.getElementById("input1");
+    const input2 = document.getElementById("input2");
+    const input3 = document.getElementById("input3");
+    const addBtn = document.getElementById("addBtn");
+    const taskList = document.getElementById("taskList");
+
+    let currentUserEmail = "";
+
+    function renderTask(doc) {
+      const data = doc.data();
+      const div = document.createElement("div");
+      div.className = "task";
+
+      const content = document.createElement("div");
+      content.innerText = `Serial ${data.serial}: ${data.input1}, ${data.input2}, ${data.input3} — Status: ${data.status}`;
+
+      const btn = document.createElement("button");
+      btn.innerText = data.status;
+      btn.className = data.status === "Completed" ? "completed" : "pending";
+
+      btn.onclick = () => {
+        if (data.user !== currentUserEmail) {
+          alert("You can only update your own tasks.");
+          return;
+        }
+        const newStatus = data.status === "Completed" ? "Pending" : "Completed";
+        db.collection("entries").doc(doc.id).update({ status: newStatus }).then(() => {
+          btn.className = newStatus === "Completed" ? "completed" : "pending";
+          btn.innerText = newStatus;
+          content.innerText = `Serial ${data.serial}: ${data.input1}, ${data.input2}, ${data.input3} — Status: ${newStatus}`;
+        });
+      };
+
+      div.appendChild(content);
+      div.appendChild(btn);
+      taskList.appendChild(div);
+    }
+
+    function loadTasks() {
+      taskList.innerHTML = "";
+      db.collection("entries")
+        .where("user", "==", currentUserEmail)
+        .orderBy("timestamp", "desc")
+        .onSnapshot((snapshot) => {
+          taskList.innerHTML = "";
+          snapshot.forEach(doc => renderTask(doc));
+        });
+    }
+
+    addBtn.onclick = () => {
+      if (!serial.value || !input1.value || !input2.value || !input3.value) {
+        alert("Fill all fields before adding.");
+        return;
+      }
+
+      const task = {
+        serial: serial.value,
+        input1: input1.value,
+        input2: input2.value,
+        input3: input3.value,
+        status: "Pending",
+        user: currentUserEmail,
+        timestamp: firebase.firestore.FieldValue.serverTimestamp()
+      };
+
+      db.collection("entries").add(task).then(() => {
+        serial.value = "";
+        input1.selectedIndex = 0;
+        input2.selectedIndex = 0;
+        input3.selectedIndex = 0;
+      });
+    };
+
+    window.onload = () => {
+      auth.onAuthStateChanged((user) => {
+        if (user) {
+          currentUserEmail = user.email;
+          loadTasks();
+        } else {
+          alert("Please log in to use this tool.");
+        }
+      });
+    };
+  </script>
+</body>
+</html>

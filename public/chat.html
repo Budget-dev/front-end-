@@ -1,0 +1,216 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>JUNO TINY Team Chat</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+  <style>
+    body {
+      margin: 0;
+      font-family: Arial, sans-serif;
+      display: flex;
+      height: 100vh;
+      background-color: #1f2937;
+      color: #e5e7eb;
+    }
+    .sidebar {
+      width: 250px;
+      background-color: #111827;
+      display: flex;
+      flex-direction: column;
+      padding: 1rem;
+    }
+    .sidebar h2 {
+      font-size: 1.3rem;
+      margin-bottom: 1rem;
+      color: #60a5fa;
+    }
+    .channel {
+      padding: 0.5rem;
+      cursor: pointer;
+      border-radius: 5px;
+      color: #d1d5db;
+    }
+    .channel:hover {
+      background-color: #374151;
+    }
+    .chat-container {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      background-color: #374151;
+    }
+    .messages {
+      flex: 1;
+      padding: 1rem;
+      overflow-y: auto;
+    }
+    .message {
+      background-color: #1f2937;
+      padding: 0.75rem;
+      border-radius: 8px;
+      margin-bottom: 1rem;
+      position: relative;
+    }
+    .message .user {
+      font-weight: bold;
+      margin-bottom: 0.3rem;
+    }
+    .delete-btn {
+      position: absolute;
+      top: 5px;
+      right: 10px;
+      cursor: pointer;
+      color: #f87171;
+    }
+    .input-box {
+      display: flex;
+      flex-direction: column;
+      padding: 1rem;
+      background: #111827;
+    }
+    .input-box input, .input-box button {
+      padding: 0.75rem;
+      margin-top: 0.5rem;
+      border-radius: 5px;
+    }
+    .input-box input {
+      border: 1px solid #4b5563;
+      background: #374151;
+      color: white;
+    }
+    .input-box button {
+      background-color: #2563eb;
+      color: white;
+      border: none;
+      cursor: pointer;
+    }
+  </style>
+</head>
+<body>
+  <div class="sidebar">
+    <h2>JUNO TINY</h2>
+    <div class="channel" data-channel="general"># General</div>
+    <div class="channel" data-channel="bugs"># Bugs</div>
+    <div class="channel" data-channel="design"># Design</div>
+  </div>
+  <div class="chat-container">
+    <div class="messages" id="messageList"></div>
+    <div class="input-box">
+      <input type="text" id="messageInput" placeholder="Type your message..." />
+      <input type="file" id="fileInput" />
+      <button id="sendBtn">Send</button>
+    </div>
+  </div>
+
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.11.0/firebase-app.js";
+    import {
+      getFirestore, collection, addDoc, query, orderBy, onSnapshot, deleteDoc, doc
+    } from "https://www.gstatic.com/firebasejs/10.11.0/firebase-firestore.js";
+    import {
+      getAuth, onAuthStateChanged
+    } from "https://www.gstatic.com/firebasejs/10.11.0/firebase-auth.js";
+    import {
+      getStorage, ref, uploadBytes, getDownloadURL
+    } from "https://www.gstatic.com/firebasejs/10.11.0/firebase-storage.js";
+
+    const firebaseConfig = {
+      apiKey: "AIzaSyAANhb1ARzAQMnsJmbexokzAgqrmYm1mJE",
+      authDomain: "junodash-d76ed.firebaseapp.com",
+      projectId: "junodash-d76ed",
+      storageBucket: "junodash-d76ed.appspot.com",
+      messagingSenderId: "920446175505",
+      appId: "1:920446175505:web:d1753097ec1e49739464b0"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const db = getFirestore(app);
+    const auth = getAuth();
+    const storage = getStorage(app);
+
+    let currentChannel = "general";
+    let currentUser = null;
+
+    function switchChannel(channel) {
+      currentChannel = channel;
+      loadMessages();
+    }
+
+    async function sendMessage() {
+      const input = document.getElementById("messageInput");
+      const fileInput = document.getElementById("fileInput");
+      const content = input.value.trim();
+
+      if (!content && !fileInput.files.length) return;
+
+      if (!currentUser) return alert("You must be signed in to send messages.");
+
+      let fileURL = "";
+      if (fileInput.files.length > 0) {
+        const file = fileInput.files[0];
+        const storageRef = ref(storage, `uploads/${currentChannel}/${Date.now()}_${file.name}`);
+        await uploadBytes(storageRef, file);
+        fileURL = await getDownloadURL(storageRef);
+      }
+
+      await addDoc(collection(db, `channels/${currentChannel}/messages`), {
+        content,
+        fileURL,
+        senderId: currentUser.uid,
+        displayName: currentUser.displayName || "Anonymous",
+        timestamp: new Date()
+      });
+
+      input.value = "";
+      fileInput.value = "";
+    }
+
+    function loadMessages() {
+      const messagesDiv = document.getElementById("messageList");
+      messagesDiv.innerHTML = "";
+
+      const q = query(collection(db, `channels/${currentChannel}/messages`), orderBy("timestamp"));
+      onSnapshot(q, (snapshot) => {
+        messagesDiv.innerHTML = "";
+        snapshot.forEach((docSnap) => {
+          const msg = docSnap.data();
+          const div = document.createElement("div");
+          div.className = "message";
+          div.innerHTML = `
+            <div class="user">${msg.displayName}</div>
+            <div>${msg.content || ""}</div>
+            ${msg.fileURL ? `<a href="${msg.fileURL}" target="_blank">📎 View File</a>` : ""}
+            ${msg.senderId === currentUser?.uid ? `<div class="delete-btn" data-id="${docSnap.id}">🗑</div>` : ""}
+          `;
+          messagesDiv.appendChild(div);
+        });
+
+        document.querySelectorAll(".delete-btn").forEach((btn) => {
+          btn.addEventListener("click", async (e) => {
+            const msgId = btn.dataset.id;
+            await deleteDoc(doc(db, `channels/${currentChannel}/messages`, msgId));
+          });
+        });
+
+        messagesDiv.scrollTop = messagesDiv.scrollHeight;
+      });
+    }
+
+    onAuthStateChanged(auth, (user) => {
+      if (user) {
+        currentUser = user;
+        loadMessages();
+      } else {
+        alert("Please sign in to access chat");
+      }
+    });
+
+    document.getElementById("sendBtn").addEventListener("click", sendMessage);
+    document.querySelectorAll(".channel").forEach((el) => {
+      el.addEventListener("click", () => switchChannel(el.dataset.channel));
+    });
+  </script>
+</body>
+</html>

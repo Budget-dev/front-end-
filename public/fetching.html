@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>JUNO TINY - Secure Serial Lookup</title>
+  <style>
+    body { font-family: Arial; background: #f0f2f5; padding: 20px; }
+    input, button {
+      display: block;
+      margin: 10px 0;
+      padding: 10px;
+      font-size: 16px;
+      width: 300px;
+    }
+    button {
+      background: #007bff;
+      color: white;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+    }
+    .logout-btn {
+      background: crimson;
+    }
+    .hidden {
+      display: none;
+    }
+    .result {
+      margin-top: 20px;
+      background: white;
+      padding: 20px;
+      border-radius: 8px;
+      box-shadow: 0 0 10px rgba(0,0,0,0.1);
+      max-width: 90%;
+      overflow-x: auto;
+    }
+    ul {
+      list-style-type: none;
+      padding: 0;
+    }
+    li {
+      padding: 5px 0;
+    }
+    h2, h3 {
+      color: #333;
+    }
+  </style>
+</head>
+<body>
+
+  <h2>🔐 JUNO TINY - Secure Serial Lookup</h2>
+
+  <!-- Login Section -->
+  <div id="loginDiv">
+    <input type="email" id="email" placeholder="Enter email">
+    <input type="password" id="password" placeholder="Enter password">
+    <button onclick="login()">Login</button>
+  </div>
+
+  <!-- Main App Section -->
+  <div id="appDiv" class="hidden">
+    <h3>Welcome to JUNO TINY 🔍</h3>
+    <input type="text" id="serialInput" placeholder="Enter Serial / Video ID">
+    <button onclick="fetchData()">Fetch Row</button>
+    <button class="logout-btn" onclick="logout()">Logout</button>
+
+    <div id="output" class="result"></div>
+  </div>
+
+  <!-- Firebase Scripts -->
+  <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-auth-compat.js"></script>
+
+  <script>
+    // ✅ Your Firebase project config
+    const firebaseConfig = {
+      apiKey: "AIzaSyAANhb1ARzAQMnsJmbexokzAgqrmYm1mJE",
+      authDomain: "junodash-d76ed.firebaseapp.com",
+      projectId: "junodash-d76ed",
+      storageBucket: "junodash-d76ed.appspot.com",
+      messagingSenderId: "920446175505",
+      appId: "1:920446175505:web:d1753097ec1e49739464b0"
+    };
+
+    firebase.initializeApp(firebaseConfig);
+    const auth = firebase.auth();
+
+    // UI Switch
+    auth.onAuthStateChanged(user => {
+      document.getElementById("loginDiv").classList.toggle("hidden", !!user);
+      document.getElementById("appDiv").classList.toggle("hidden", !user);
+    });
+
+    function login() {
+      const email = document.getElementById("email").value;
+      const pass = document.getElementById("password").value;
+      auth.signInWithEmailAndPassword(email, pass)
+        .catch(err => alert("Login Failed: " + err.message));
+    }
+
+    function logout() {
+      auth.signOut();
+    }
+
+    // ✅ Google Sheet - CSV Published Link
+    const csvUrl = "https://docs.google.com/spreadsheets/d/e/2PACX-1vRCXdo3YklABlKP2g5DIChEzM175DGr4M0e4gyhxtZIk7J9kcV0t2s9IPcKqBXxKm9XsJxGykatYyl6/pub?output=csv";
+
+    async function fetchData() {
+      const input = document.getElementById("serialInput").value.trim().toLowerCase();
+      const output = document.getElementById("output");
+      output.innerHTML = "🔄 Searching...";
+
+      try {
+        const res = await fetch(csvUrl);
+        const text = await res.text();
+        const rows = text.trim().split('\n').map(r => r.split(','));
+
+        const headers = rows[0];
+        const dataRows = rows.slice(1);
+
+        let match = null;
+        for (const row of dataRows) {
+          if (row.some(cell => cell.trim().toLowerCase() === input)) {
+            match = row;
+            break;
+          }
+        }
+
+        if (match) {
+          let html = "<h3>✅ Match Found</h3><ul>";
+          headers.forEach((head, i) => {
+            html += `<li><strong>${head}:</strong> ${match[i] || ""}</li>`;
+          });
+          html += "</ul>";
+          output.innerHTML = html;
+        } else {
+          output.innerHTML = `<p style="color:red;">❌ No match found for "${input}".</p>`;
+        }
+
+      } catch (e) {
+        console.error(e);
+        output.innerHTML = `<p style="color:red;">⚠️ Error fetching sheet data.</p>`;
+      }
+    }
+  </script>
+
+</body>
+</html>

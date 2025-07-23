@@ -1,0 +1,596 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Road Asset Analytics Dashboard</title>
+  <!-- FONTS & LIBRARIES -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css"/>
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/echarts@5/dist/echarts.min.js"></script>
+  <style>
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background: #f7f8fa;
+      color: #333;
+      margin: 0;
+    }
+    .navbar {
+      height: 60px;
+      background: #fff;
+      box-shadow: 0 8px 24px rgba(0,0,0,0.05);
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 0 32px; margin-bottom: 18px;
+    }
+    .logo { font-size: 22px; font-weight: bold; color: #1e1e2f; }
+    .logo .brand { color: #6a00f4; }
+    .nav-links a {
+      text-decoration: none; color: #333; font-size: 16px;
+      margin-right: 24px; transition: color 0.2s;
+    }
+    .nav-links a.active, .nav-links a:hover { color: #6a00f4; }
+    .auth-buttons button {
+      padding: 8px 18px;
+      border-radius: 25px;
+      border: none;
+      font-weight: bold;
+      font-size: 13px;
+      margin-left: 6px;
+    }
+    .login-btn {
+      background: transparent;
+      color: #6a00f4;
+      border: 1.5px solid #6a00f4;
+    }
+    .signup-btn {
+      background: #6a00f4;
+      color: white;
+      border: none;
+    }
+    .layout {
+      display: flex; gap: 28px; padding: 0 32px 20px 32px;
+      justify-content: space-between;
+    }
+    .left-panel { width: 63%; }
+    .player-box {
+      width: 100%; min-height: 420px; background: #fafafa;
+      border: 2px solid #6a00f4; border-radius: 16px;
+      box-shadow: 0 4px 12px rgba(106,0,244,0.10);
+      display: flex; align-items: center; justify-content: center;
+      position: relative; overflow: hidden;
+    }
+    .player-box img {
+      max-width: 100%; max-height: 410px; border-radius: 12px;
+      object-fit: contain; background: #efefef;
+      display: block;
+    }
+    .controls {
+      position: absolute; bottom: 16px; left: 50%; transform: translateX(-50%);
+      display: flex; gap: 10px; z-index: 20;
+      background: rgba(255,255,255,0.95); border-radius: 10px;
+      padding: 6px 14px; box-shadow: 0 2px 12px rgba(106,0,244,0.05);
+      border: 1px solid #eee;
+    }
+    .controls button {
+      border-radius: 30px; padding: 6px 18px; font-weight: 600;
+      border: none; color: #6a00f4; background: #fff;
+      transition: background 0.2s, color 0.2s;
+      font-size: 15px;
+    }
+    .controls button.active, .controls button:focus {
+      background: #6a00f4;
+      color: #fff;
+    }
+    .controls input[type="range"] {
+      width: 260px; accent-color: #6a00f4; height: 3px;
+    }
+    aside {
+      width: 37%; display: flex; flex-direction: column; gap: 16px;
+    }
+    .asset-summary-card {
+      background: #fff; border-radius: 13px;
+      box-shadow: 0 4px 12px rgba(106,0,244,0.11);
+      width: 100%; padding: 0 0 22px 0;
+    }
+    .card-header {
+      background: linear-gradient(90deg,#6a00f4,#e100ff66);
+      color: #fff; border-radius: 13px 13px 0 0; padding: 16px 26px;
+      font-weight: bold; font-size: 18px; display: flex; gap: 10px; align-items: center;
+    }
+    .frame-id { margin-left: auto; font-size: 14px; font-weight: 400;}
+    .asset-list {
+      padding: 12px 19px; max-height:225px; overflow-y: auto;
+      font-size: 15px;
+    }
+    .asset-item { margin-bottom: 17px; position: relative;}
+    .dot {
+      display: inline-block; width: 11px; height: 11px;
+      border-radius: 50%; margin-right: 6px;
+    }
+    .dot.green { background: #4C84FF; }
+    .dot.purple { background: #8338EC; }
+    .bar {
+      width: 96%; height: 7px; background: #e5e7eb; border-radius: 3px;
+      margin: 2px 4px 8px 0;
+      overflow: hidden;
+    }
+    .fill.green { background-color: #4C84FF; height:100%; border-radius:3px; }
+    .fill.purple { background-color: #8338EC; height:100%; border-radius:3px; }
+    .source-badge {
+      border-radius: 18px; font-size: 11px; padding: 2px 10px; margin-left: 10px;
+      position: absolute; right: 0; top: 3px;
+    }
+    .source-badge.ai { background: #f3eaff; color: #6a00f4; }
+    .source-badge.manual { background: #efe7ff; color: #8338EC; }
+    .asset-total {
+      text-align: right; font-weight: bold; font-size: 15px;
+      border-top: 1px solid #eee; padding-top: 12px; padding-right: 23px;
+      margin-bottom:0;
+    }
+    .asset-total span { color: #6a00f4; font-size: 18px;}
+    .mini-boxes {
+      display: flex; gap: 18px; padding: 6px 0 0 2px;
+    }
+    .mini-box {
+      background: #fff; color: #333;
+      border-radius: 13px; box-shadow: 0 4px 10px rgba(106,0,244,0.07);
+      padding: 11px 16px; display: flex; align-items: center; gap: 12px;
+      min-width: 110px;
+    }
+    .bg-total   { background: #ffd166; color: #1e1e2f; }
+    .bg-machine { background: #d9b3ff; color: #6a00f4; }
+    .bg-manual  { background: #c3f3e9; color: #028174; }
+    .mini-box .icon { font-size: 19px; margin-right: 3px;}
+    .mini-box .value { font-size: 18px; font-weight: 600; }
+    .mini-box .label { font-size: 12px; color: #666; margin-top:2px;}
+    .charts-row {
+      display: flex; gap: 18px; margin: 0 32px 22px 32px;
+      flex-wrap: wrap;
+    }
+    .chart-card1, .chart-card2 {
+      background: #fff;
+      border-radius: 13px;
+      box-shadow: 0 4px 12px rgba(106,0,244,0.11);
+      padding: 12px 18px;
+      width: 48%; min-width: 300px; margin-bottom: 10px;
+      position: relative;
+    }
+    .chart-card1 h4, .chart-card2 h4 {
+      font-weight: 600; color: #6a00f4; font-size: 16px;
+      margin-bottom: 8px;
+    }
+    #donutChart { width: 100%; height: 265px; margin-bottom: 10px;}
+    canvas { max-width: 100% !important; height: 240px !important;}
+    /* Toggle Buttons */
+    .toggle-mode { gap: 9px; margin-left: 8px;}
+    .toggle-mode button {
+      border-radius: 20px; padding: 4px 18px;
+      font-size: 14px; border: 1.5px solid #6a00f4;
+      background: #fff; color: #6a00f4;
+      font-weight: 500; transition: background 0.2s,color 0.2s;
+    }
+    .toggle-mode button.active,.toggle-mode button:focus {
+      background: #6a00f4; color: #fff;
+    }
+    /* Responsive Design */
+    @media (max-width: 1000px) {
+      .layout, .charts-row { flex-direction: column; gap: 14px;}
+      .left-panel, aside, .chart-card1, .chart-card2 { width: 100%; min-width: 0;}
+    }
+    @media (max-width: 700px) {
+      .navbar, .layout, .charts-row { padding: 0 3vw; }
+      .controls input[type="range"] { width: 105px;}
+      .asset-list { padding: 12px 8px;}
+    }
+  </style>
+</head>
+<body>
+  <!-- NAVBAR -->
+  <nav class="navbar">
+    <div class="logo">Analytics <span class="brand">Project</span></div>
+    <div class="nav-links">
+      <a href="#" class="active">Products</a>
+      <a href="#">Pie</a>
+      <a href="#">Bar</a>
+      <a href="#">Analytics</a>
+      <a href="#">Reports</a>
+    </div>
+    <div class="auth-buttons">
+      <button class="login-btn">Log In</button>
+      <button class="signup-btn">Sign Up →</button>
+    </div>
+  </nav>
+  
+  <!-- MAIN LAYOUT -->
+  <main class="layout">
+    <!-- LEFT side -->
+    <section class="left-panel">
+      <div class="player-box" id="playerBox">
+        <span>No frame loaded</span>
+        <div class="controls">
+          <button onclick="prevFrame()">⏮️ Prev</button>
+          <button onclick="togglePlayPause()" id="playPause">▶️ Play</button>
+          <button onclick="nextFrame()">⏭️ Next</button>
+          <input type="range" id="frameSlider" min="0" value="0" step="1" onchange="goToFrame(this.value)" />
+        </div>
+      </div>
+    </section>
+    <!-- RIGHT side -->
+    <aside>
+      <div class="asset-summary-card">
+        <div class="card-header">
+          <i class="fas fa-chart-line"></i> Distribution Overview 
+          <div class="frame-id">Assets/Faults</div>
+        </div>
+        <div class="asset-list"></div>
+        <div class="asset-total">Total Assets <span>0</span></div>
+      </div>
+      <div class="mini-boxes">
+        <div class="mini-box bg-total">
+          <i class="fas fa-database icon"></i>
+          <div>
+            <div class="value" id="boxTotal">0</div>
+            <div class="label">Total</div>
+          </div>
+        </div>
+        <div class="mini-box bg-machine">
+          <i class="fas fa-robot icon"></i>
+          <div>
+            <div class="value" id="boxMachine">0</div>
+            <div class="label">Machine</div>
+          </div>
+        </div>
+        <div class="mini-box bg-manual">
+          <i class="fas fa-user icon"></i>
+          <div>
+            <div class="value" id="boxManual">0</div>
+            <div class="label">Manual</div>
+          </div>
+        </div>
+      </div>
+    </aside>
+  </main>
+
+  <!-- TOOLS & CHARTS -->
+  <section style="display:flex; align-items: center; justify-content:space-between; gap:14px; margin:5px 32px -12px 32px;">
+    <div>
+      <button class="btn btn-light rounded-circle me-2" data-bs-toggle="modal" data-bs-target="#uploadModal" title="Upload Inference Data">
+        <i class="fas fa-cog"></i>
+      </button>
+      <button id="fetchButton" class="btn btn-primary btn-sm">View Analytics</button>
+    </div>
+    <div class="toggle-mode">
+      <button id="perFrameBtn" class="active" onclick="setMode('frame')">Per Frame</button>
+      <button id="overallBtn" onclick="setMode('overall')">Overall</button>
+    </div>
+  </section>
+  <section class="charts-row">
+    <div class="chart-card1">
+      <h4>Asset Type Distribution</h4>
+      <div id="donutChart"></div>
+      <h4 style="margin-top:25px;">AI vs Manual Assets</h4>
+      <canvas id="barChart"></canvas>
+    </div>
+  </section>
+
+  <!-- Upload Modal -->
+  <div class="modal fade" id="uploadModal" tabindex="-1" aria-labelledby="uploadModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered" style="max-width: 350px;">
+      <div class="modal-content p-3 rounded">
+        <div class="modal-header border-0 pb-0">
+          <h5 class="modal-title" id="uploadModalLabel">Upload & Inference</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body">
+          <label class="form-label">📁 Upload your video_data folder</label>
+          <input type="file" id="folderInput" class="form-control mb-3" webkitdirectory multiple>
+          <label class="form-label">Select Inference Type</label>
+          <select id="inferenceType" class="form-select mb-3">
+            <option selected disabled>Choose type</option>
+            <option value="NZ Assets">NZ Assets</option>
+            <option value="NZ Faults">NZ Faults</option>
+          </select>
+          <div class="d-grid">
+            <button class="btn btn-primary" data-bs-dismiss="modal" id="doneBtn">Done</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+<!-- Include your existing JS (from your original code) below for analytics and interactivity -->
+<script>
+  let uploadedFiles = [];          // All uploaded files (after filtered by inference folder)
+let selectedFolder = '';         // "NZ Assets" or "NZ Faults"
+let frames = [], jsons = [], currentIndex = 0, interval = null;
+let barChartInstance = null;
+let mode = 'frame';
+
+document.getElementById('doneBtn').addEventListener('click', () => {
+  const folderFiles = Array.from(document.getElementById('folderInput').files);
+  const selectedType = document.getElementById('inferenceType').value;
+
+  if (!selectedType || folderFiles.length === 0) {
+    alert('Please upload folder and select inference type.');
+    return;
+  }
+
+  // Store filtered files from selected subfolder
+  const folderName = selectedType === 'NZ Assets' ? 'NZ Assets' : 'NZ Faults';
+  uploadedFiles = folderFiles.filter(file =>
+    file.webkitRelativePath.includes(folderName)
+  );
+  selectedFolder = folderName;
+
+  console.log(`✅ Selected folder: ${selectedFolder}`);
+  console.log(`📁 Filtered files count: ${uploadedFiles.length}`);
+});
+
+document.getElementById('fetchButton').addEventListener('click', () => {
+  if (uploadedFiles.length === 0) {
+    alert('Please upload and select an inference type before fetching.');
+    return;
+  }
+
+  // Optional loading animation (replace with actual animation if desired)
+  document.getElementById('fetchButton').innerText = '⏳ Loading...';
+  document.getElementById('fetchButton').disabled = true;
+
+  setTimeout(() => {
+    handleFileChange({ target: { files: uploadedFiles } });
+    document.getElementById('fetchButton').innerText = 'Fetch Graphs';
+    document.getElementById('fetchButton').disabled = false;
+  }, 3000);
+});
+
+function handleFileChange(e) {
+  const files = Array.from(e.target.files);
+  frames = files.filter(f => f.name.endsWith('.jpg') || f.name.endsWith('.png'));
+  jsons = files.filter(f => f.name.endsWith('.json'));
+  frames.sort((a, b) => a.name.localeCompare(b.name));
+  jsons.sort((a, b) => a.name.localeCompare(b.name));
+  document.getElementById('frameSlider').max = frames.length - 1;
+  currentIndex = 0;
+  showFrame();
+  renderCharts();
+}
+
+function showFrame() {
+  if (frames.length === 0) return;
+  const reader = new FileReader();
+  reader.onload = () => {
+    document.getElementById('playerBox').innerHTML = `
+      <img src="${reader.result}" alt="Frame">
+      <div class="controls">
+        <button onclick="prevFrame()">⏮️ Prev</button>
+        <button onclick="togglePlayPause()" id="playPause">${interval ? '⏸️ Pause' : '▶️ Play'}</button>
+        <button onclick="nextFrame()">⏭️ Next</button>
+        <input type="range" id="frameSlider" min="0" value="${currentIndex}" step="1" onchange="goToFrame(this.value)" />
+      </div>
+    `;
+    if (mode === 'frame') renderCharts();
+  };
+  reader.readAsDataURL(frames[currentIndex]);
+}
+
+function nextFrame() {
+  if (currentIndex < frames.length - 1) {
+    currentIndex++;
+    showFrame();
+  }
+}
+
+function prevFrame() {
+  if (currentIndex > 0) {
+    currentIndex--;
+    showFrame();
+  }
+}
+
+function goToFrame(index) {
+  currentIndex = parseInt(index);
+  showFrame();
+}
+
+function togglePlayPause() {
+  const btn = document.getElementById('playPause');
+  if (interval) {
+    clearInterval(interval);
+    interval = null;
+    btn.textContent = '▶️ Play';
+  } else {
+    interval = setInterval(() => {
+      if (currentIndex >= frames.length - 1) return togglePlayPause();
+      currentIndex++;
+      showFrame();
+    }, 300);
+    btn.textContent = '⏸️ Pause';
+  }
+}
+
+function setMode(m) {
+  mode = m;
+  document.getElementById('perFrameBtn').classList.toggle('active', m === 'frame');
+  document.getElementById('overallBtn').classList.toggle('active', m === 'overall');
+  renderCharts();
+}
+
+function renderCharts() {
+  const pieData = [['Asset Type', 'Count']];
+  let ai = 0, manual = 0;
+  const assetMap = {};
+  const getData = (files) => Promise.all(files.map(f => new Promise(res => {
+    const r = new FileReader();
+    r.onload = () => {
+      try {
+        const data = JSON.parse(r.result);
+        const items = Array.isArray(data) ? data : [data];
+        items.forEach(({ description, source }) => {
+          if (description) {
+            assetMap[description] = assetMap[description] || { count: 0, source: source?.toLowerCase() || 'ai' };
+            assetMap[description].count++;
+            if (source?.toLowerCase() === 'manual') manual++;
+            else ai++;
+          }
+        });
+      } catch (err) {
+        console.error("Error parsing JSON:", f.name, err);
+      }
+      res();
+    };
+    r.readAsText(f);
+  })));
+  const filesToRead = mode === 'frame'
+    ? jsons.filter(f => f.name.startsWith(frames[currentIndex].name.replace(/\.(jpg|png)$/, '')))
+    : jsons;
+  getData(filesToRead).then(() => {
+    Object.entries(assetMap).forEach(([k, v]) => pieData.push([k, v.count]));
+    updateMiniBoxes(ai, manual);
+    drawDonutChart(pieData);
+    drawBarChart(ai, manual);
+    updateAssetSummary(assetMap, ai + manual);
+  });
+}
+
+function updateMiniBoxes(ai, manual) {
+  document.getElementById('boxTotal').textContent = ai + manual;
+  document.getElementById('boxMachine').textContent = ai;
+  document.getElementById('boxManual').textContent = manual;
+}
+
+function updateAssetSummary(assetCounts, total) {
+  const container = document.querySelector('.asset-list');
+  container.innerHTML = '';
+  if (total === 0) {
+    container.innerHTML = '<p>No assets found.</p>';
+    return;
+  }
+  const sorted = Object.entries(assetCounts).sort((a, b) => b[1].count - a[1].count);
+  sorted.forEach(([name, { count, source }]) => {
+    const pct = ((count / total) * 100).toFixed(1);
+    const dot = source === 'manual' ? 'purple' : 'green';
+    const fill = source === 'manual' ? 'purple' : 'green';
+    const badge = source === 'manual' ? 'manual' : 'ai';
+    container.innerHTML += `
+      <div class="asset-item">
+        <span class="dot ${dot}"></span> ${name}
+        <strong>${count}</strong> <span class="percent">(${pct}%)</span>
+        <div class="bar"><div class="fill ${fill}" style="width: ${pct}%"></div></div>
+        <span class="source-badge ${badge}">${source === 'manual' ? 'Manual' : 'AI'}</span>
+      </div>`;
+  });
+  document.querySelector('.asset-total span').textContent = total;
+}
+
+function drawDonutChart(dataArray) {
+  const container = document.getElementById('donutChart');
+  if (!container) return;
+
+  echarts.dispose(container);
+  const chart = echarts.init(container);
+
+  const chartData = dataArray.slice(1).map(([name, value]) => ({ name, value }));
+  const totalAssets = chartData.reduce((sum, item) => sum + item.value, 0);
+
+  const option = {
+    tooltip: { trigger: 'item' },
+    legend: {
+      orient: 'vertical',
+      left: '60%', // 💡 Use "left" instead of "screenLeft"
+      top: 'middle',
+      icon: 'roundRect',
+      itemWidth: 20,
+      itemHeight: 18,
+      itemGap: 10,
+      textStyle: {
+        fontSize: 13,
+        color: '#999'
+      }
+    },
+    series: [
+      {
+        name: 'Asset Types',
+        type: 'pie',
+        radius: ['60%', '80%'],
+        center: ['30%', '50%'], // ✅ same center for donut
+        startAngle: 90,
+        clockwise: true,
+        roundCap: true,
+        avoidLabelOverlap: false,
+        itemStyle: {
+          borderRadius: 9,
+          borderColor: '#fff',
+          borderWidth: 4
+        },
+        label: { show: false },
+        labelLine: { show: false },
+        data: chartData
+      },
+      {
+        type: 'pie',
+        radius: ['50%', '85%'],
+        center: ['30%', '50%'], // ✅ same center for label
+        label: {
+          position: 'center',
+          formatter: `{a|${totalAssets}}\n{b|Assets Found}`,
+          rich: {
+            a: {
+              fontSize: 26,
+              fontWeight: 'bold',
+              color: '#111'
+            },
+            b: {
+              fontSize: 14,
+              color: '#666'
+            }
+          }
+        },
+        labelLine: { show: false },
+        data: [{ value: 1, itemStyle: { color: 'transparent' } }],
+        silent: true,
+        z: 2
+      }
+    ],
+    color: ['#4C84FF', '#FFD166', '#FF6B6B', '#06D6A0', '#8338EC', '#FF9F1C']
+  };
+
+  chart.setOption(option);
+  window.addEventListener('resize', () => chart.resize());
+}
+
+
+function drawBarChart(aiCount, manualCount) {
+  const ctx = document.getElementById('barChart');
+  if (!ctx) return;
+  const config = {
+    type: 'bar',
+    data: {
+      labels: ['AI Generated', 'Manual'],
+      datasets: [{
+        label: 'Asset Count',
+        data: [aiCount, manualCount],
+        backgroundColor: ['#3498db', '#e74c3c']
+      }]
+    },
+    options: {
+      responsive: true,
+      scales: {
+        y: {
+          beginAtZero: true,
+          ticks: { stepSize: 1 }
+        }
+      }
+    }
+  };
+  if (barChartInstance) {
+    barChartInstance.data.datasets[0].data = [aiCount, manualCount];
+    barChartInstance.update();
+  } else {
+    barChartInstance = new Chart(ctx.getContext('2d'), config);
+  }
+}
+
+</script>
+</body>
+</html>

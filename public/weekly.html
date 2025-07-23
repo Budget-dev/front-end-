@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Weekly Dashboard | JUNO TINY</title>
+  <script type="module" src="./weekly.js" defer></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <style>
+    body {
+      font-family: 'Segoe UI', sans-serif;
+      background: #f0f8ff;
+      padding: 20px;
+      margin: 0;
+    }
+    .dashboard-container {
+      max-width: 900px;
+      margin: 0 auto;
+    }
+    .cards {
+      display: flex;
+      justify-content: space-between;
+      gap: 20px;
+      margin-bottom: 40px;
+    }
+    .card {
+      flex: 1;
+      padding: 20px;
+      background: white;
+      border-radius: 16px;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+      font-size: 20px;
+      color: #333;
+      text-align: center;
+    }
+    canvas {
+      background: white;
+      border-radius: 16px;
+      padding: 20px;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+    }
+  </style>
+</head>
+<body>
+  <div class="dashboard-container">
+    <h2 style="text-align: center; color: #2c3e50;">📊 Weekly Frame Dashboard</h2>
+    <div class="cards">
+      <div class="card">Daily Count<br><span id="todayCount">0</span></div>
+      <div class="card">Weekly Count<br><span id="weeklyCount">0</span></div>
+      <div class="card">Total Count<br><span id="totalCount">0</span></div>
+    </div>
+    <canvas id="weeklyGraph" height="300"></canvas>
+  </div>
+</body>
+</html>

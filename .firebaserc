@@ -1,0 +1,8 @@
+{
+  "projects": {
+    "default": "junodash-d76ed",
+    "firebase storage:rules:set cors.json": "junodash-d76ed"
+  },
+  "targets": {},
+  "etags": {}
+}

@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Join Independence Day Celebration</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background: #f0f8ff;
+      padding: 20px;
+      text-align: center;
+    }
+    h1 {
+      color: #ff6600;
+    }
+    .avatar {
+      width: 60px;
+      height: 60px;
+      border-radius: 50%;
+      margin: 10px;
+      border: 2px solid transparent;
+      cursor: pointer;
+    }
+    .avatar.selected {
+      border-color: green;
+      box-shadow: 0 0 5px #0f0;
+    }
+    input, textarea, select, button {
+      margin: 10px;
+      padding: 10px;
+      font-size: 16px;
+    }
+  </style>
+</head>
+<body>
+  <h1>🇮🇳 Join Your Team's Independence Day Celebration</h1>
+
+  <form id="joinForm">
+    <p>Are you interested in participating?</p>
+    <label><input type="radio" name="interest" value="yes" required> Yes</label>
+    <label><input type="radio" name="interest" value="no"> No</label>
+
+    <div id="details" style="display:none;">
+      <p><input type="text" id="name" placeholder="Your Name" required></p>
+      <p><input type="text" id="role" placeholder="Your Role (e.g., Developer, Manager)" required></p>
+      <p>Select an Avatar:</p>
+      <div id="avatarList">
+        <img src="avatars/avatar1.png" class="avatar" data-id="avatar1">
+        <img src="avatars/avatar2.png" class="avatar" data-id="avatar2">
+        <img src="avatars/avatar3.png" class="avatar" data-id="avatar3">
+        <img src="avatars/avatar4.png" class="avatar" data-id="avatar4">
+        <img src="avatars/avatar5.png" class="avatar" data-id="avatar5">
+      </div>
+      <p><textarea id="message" placeholder="Optional message to the team"></textarea></p>
+      <button type="submit">Submit</button>
+    </div>
+  </form>
+
+  <script src="https://www.gstatic.com/firebasejs/10.5.0/firebase-app.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.5.0/firebase-firestore.js"></script>
+  <script>
+    const firebaseConfig = {
+      // TODO: Replace with your Firebase project config
+    };
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.firestore();
+
+    const form = document.getElementById('joinForm');
+    const avatarList = document.getElementById('avatarList');
+    const interestRadios = form.elements['interest'];
+    const detailsSection = document.getElementById('details');
+    let selectedAvatar = null;
+    let teamCode = new URLSearchParams(window.location.search).get('team') || 'defaultTeam';
+
+    interestRadios.forEach(r => r.addEventListener('change', () => {
+      detailsSection.style.display = r.value === 'yes' ? 'block' : 'none';
+    }));
+
+    avatarList.addEventListener('click', (e) => {
+      if (e.target.classList.contains('avatar')) {
+        document.querySelectorAll('.avatar').forEach(a => a.classList.remove('selected'));
+        e.target.classList.add('selected');
+        selectedAvatar = e.target.dataset.id;
+      }
+    });
+
+    form.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const interest = form.elements['interest'].value;
+      if (interest !== 'yes') {
+        alert('Thank you!');
+        return;
+      }
+
+      const name = document.getElementById('name').value.trim();
+      const role = document.getElementById('role').value.trim();
+      const message = document.getElementById('message').value.trim();
+
+      if (!selectedAvatar) return alert('Please select an avatar.');
+
+      await db.collection('teams').doc(teamCode).collection('members').add({
+        name, role, message,
+        avatar: `avatars/${selectedAvatar}.png`,
+        timestamp: new Date()
+      });
+
+      alert('You have successfully joined the celebration! 🇮🇳');
+      form.reset();
+      detailsSection.style.display = 'none';
+    });
+  </script>
+</body>
+</html>

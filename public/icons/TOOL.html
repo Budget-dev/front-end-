@@ -1,0 +1,191 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Video Dashboard</title>
+  <style>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: 'Segoe UI', sans-serif;
+      background: linear-gradient(to right, #7f00ff, #e100ff);
+      color: #333;
+      padding: 0 16px;
+    }
+
+    .navbar {
+      background-color: white;
+      padding: 16px 32px;
+      border-radius: 12px;
+      margin: 20px auto;
+      max-width: 1200px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.1);
+      flex-wrap: wrap;
+    }
+
+    .logo {
+      font-weight: bold;
+      font-size: 22px;
+      color: #1e1e2f;
+    }
+
+    .nav-links {
+      display: flex;
+      gap: 24px;
+      flex-wrap: wrap;
+    }
+
+    .nav-links a {
+      text-decoration: none;
+      color: #333;
+      font-size: 16px;
+    }
+
+    .nav-links a.active,
+    .nav-links a:hover {
+      color: #7f00ff;
+    }
+
+    .nav-buttons {
+      display: flex;
+      gap: 12px;
+    }
+
+    .nav-buttons button {
+      padding: 8px 18px;
+      border-radius: 25px;
+      border: none;
+      font-weight: bold;
+      cursor: pointer;
+      font-size: 14px;
+      transition: 0.3s;
+    }
+
+    .login-btn {
+      background: transparent;
+      color: #7f00ff;
+      border: 1px solid #7f00ff;
+    }
+
+    .signup-btn {
+      background: #7f00ff;
+      color: white;
+    }
+
+    .login-btn:hover {
+      background-color: #f4e9ff;
+    }
+
+    .signup-btn:hover {
+      background-color: #6600cc;
+    }
+
+    .content {
+      max-width: 1200px;
+      margin: 30px auto;
+      background: #fff;
+      border-radius: 16px;
+      padding: 20px;
+      box-shadow: 0 12px 24px rgba(0, 0, 0, 0.1);
+    }
+
+    .video-player {
+      width: 100%;
+      border-radius: 12px;
+      overflow: hidden;
+      margin-bottom: 30px;
+    }
+
+    video {
+      width: 100%;
+      height: auto;
+      border-radius: 12px;
+    }
+
+    .two-bars {
+      display: flex;
+      gap: 20px;
+      flex-wrap: wrap;
+    }
+
+    .bar {
+      flex: 1 1 45%;
+      background: white;
+      border-radius: 16px;
+      box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
+      padding: 20px;
+      min-height: 200px;
+    }
+
+    .bar h3 {
+      margin-bottom: 10px;
+      color: #7f00ff;
+    }
+
+    @media (max-width: 768px) {
+      .two-bars {
+        flex-direction: column;
+      }
+
+      .bar {
+        flex: 1 1 100%;
+      }
+
+      .nav-buttons {
+        width: 100%;
+        justify-content: flex-end;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Navbar -->
+  <div class="navbar">
+    <div class="logo">Product <span style="color: #7f00ff;">Sales</span></div>
+    <div class="nav-links">
+      <a href="#" class="active">Products</a>
+      <a href="#">Company</a>
+      <a href="#">Integration</a>
+      <a href="#">Pricing</a>
+      <a href="#">Resource</a>
+    </div>
+    <div class="nav-buttons">
+      <button class="login-btn">Log In</button>
+      <button class="signup-btn">Sign Up →</button>
+    </div>
+  </div>
+
+  <!-- Main Content -->
+  <div class="content">
+    <h2 style="margin-bottom: 16px;">Video Player</h2>
+    <div class="video-player">
+      <video controls>
+        <source src="sample.mp4" type="video/mp4" />
+        Your browser does not support the video tag.
+      </video>
+    </div>
+
+    <!-- Two Horizontal Bars -->
+    <div class="two-bars">
+      <div class="bar">
+        <h3>Sales Overtime</h3>
+        <p>This section can display a chart or any other visual summary.</p>
+      </div>
+      <div class="bar">
+        <h3>Customer Insight</h3>
+        <p>This section can show pie charts or stats like New vs Repeat users.</p>
+      </div>
+    </div>
+  </div>
+
+</body>
+</html>

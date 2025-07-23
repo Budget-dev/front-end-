@@ -1,0 +1,754 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Asset Frame Video Player & Analytics</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css " />
+  <script src="https://cdn.jsdelivr.net/npm/chart.js "></script>
+ 
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" rel="stylesheet">
+ <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" rel="stylesheet">
+   <script src="https://cdn.jsdelivr.net/npm/echarts@5/dist/echarts.min.js"></script>
+  <style>
+.button{
+  border: none;
+}
+    body {
+      font-family: sans-serif;
+      background: linear-gradient(135deg, #7f00ff00, #e100ff66);
+      color: #333;
+      margin: 0;
+      height: 100px;
+      
+    }
+
+    .navbar {
+      background: white;
+      padding: 16px 32px;
+      width: 100%;
+      margin: 0 auto 10px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      align-content: center;
+height: 1px;
+      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.1);
+    }
+
+    .logo {
+      font-weight: bold;
+      font-size: 22px;
+      color: #1e1e2f;
+    }
+
+    .nav-links {
+      display: flex;
+      gap: 24px;
+    }
+
+    .nav-links a {
+      text-decoration: none;
+      color: #333;
+      font-size: 16px;
+    }
+
+    .nav-links a.active,
+    .nav-links a:hover {
+      color: #7f00ff;
+    }
+
+    .nav-buttons button {
+      padding: 8px 18px;
+      border-radius: 25px;
+      border: none;
+      font-weight: bold;
+      cursor: pointer;
+      font-size: 11px;
+    }
+
+    .login-btn {
+      background: transparent;
+      color: #7f00ff;
+      border: 1px solid #7f00ff;
+    }
+
+    .signup-btn {
+      background: #7f00ff;
+      color: white;
+    }
+
+    .top-bar {
+      display: flex;
+      align-items: center;
+      gap: 20px;
+      justify-content: space-between;
+      padding: 0px 20px;
+    }
+
+    .mini-boxes {
+      display: flex;
+      gap: 8px;
+    }
+
+    .mini-box {
+      display: flex;
+      align-items: baseline;
+      gap: 8px;
+      padding: 10px 12px;
+      min-width: 128px;
+      color: white;
+      border-radius: 8px;
+      box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+      
+    }
+
+    .mini-box .icon {
+      font-size: 18px;
+    }
+
+    .mini-box .value {
+      font-weight: bold;
+      font-size: 16px;
+    }
+
+    .mini-box .label {
+      font-size: 12px;
+    }
+
+    .bg-total {
+      background-color: #f59e0b;
+    }
+
+    .bg-machine {
+      background-color: #ef5350;
+    }
+
+    .bg-manual {
+      background-color: #34a853;
+    }
+
+    .toggle-mode {
+      display: flex;
+      gap: 10px;
+    }
+
+    .toggle-mode button {
+      padding: 6px 12px;
+      border: 1px solid #3498db;
+      background: #fff;
+      color: #3498db;
+      border-radius: 5px;
+      cursor: pointer;
+    }
+
+    .toggle-mode button.active {
+      background-color: #3498db;
+      color: white;
+    }
+
+    .layout {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: space-between;
+      padding: 10px 20px;
+      gap: 20px;
+    }
+
+    .left-panel {
+      width: 65%;
+    }
+
+    .asset-summary-card {
+      width: 398px;
+      background: #fff;
+      border-radius: 10px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+      height: 450px;
+    }
+
+    .card-header {
+      background: linear-gradient(90deg, #7f00ff, #6a00f4);
+      color: white;
+      padding: 10px 15px;
+      border-radius: 10px 10px 0 0;
+      font-weight: bold;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .asset-list {
+      padding: 10px 0;
+      overflow-y: auto;
+      max-height:358px;
+    }
+
+    .asset-item {
+      margin-bottom: 16px;
+      font-size: 14px;
+      color: #333;
+    }
+
+    .dot {
+      display: inline-block;
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+      margin-right: 6px;
+    }
+
+    .dot.green {
+      background: #22c55e;
+    }
+
+    .dot.purple {
+      background: #a855f7;
+    }
+
+    .bar {
+      width: 100%;
+      height: 6px;
+      background: #e5e7eb;
+      border-radius: 3px;
+      margin: 4px 0 6px;
+      overflow: hidden;
+    }
+
+    .fill {
+      height: 100%;
+      border-radius: 3px;
+    }
+
+    .fill.green {
+      background-color: #22c55e;
+    }
+
+    .fill.purple {
+      background-color: #a855f7;
+    }
+
+    .source-badge {
+      font-size: 10px;
+      padding: 3px 6px;
+      border-radius: 10px;
+      float: right;
+      margin-top: -24px;
+      font-weight: 500;
+    }
+
+    .source-badge.ai {
+      background-color: #e0f7e9;
+      color: #047857;
+    }
+
+    .source-badge.manual {
+      background-color: #f3e8ff;
+      color: #7e22ce;
+    }
+
+    .asset-total {
+      text-align: right;
+      font-weight: bold;
+      font-size: 15px;
+      border-top: 1px solid #eee;
+      padding-top: 10px;
+    }
+
+    .asset-total span {
+      color: #3b82f6;
+      font-size: 18px;}
+    .player-box {
+  background: #f0f0f0;             /* Light gray background */
+  width: 815px;                     /* Full width */
+  height: 450px;                   /* Fixed height */
+  border-radius: 0px;              /* No rounded edges (since you asked for rectangle earlier) */
+  display: flex;                   /* Center contents */
+  align-items: center;            /* Vertically center */
+  justify-content: center;       /* Horizontally center */
+  overflow: hidden;               /* Hide overflow (e.g., video edges) */
+  position: relative;             /* Allow absolute child positioning */
+  border: 2px solid #ccc;         /* Optional: subtle border */
+}
+
+
+    .player-box img {
+      max-width: 100%;
+      max-height: 100%;
+      border-radius: 6px;
+    }
+
+    .controls {
+      position: absolute;
+      bottom: 2px;
+      left: 1px;
+      display: flex;
+      gap: 10px;
+      border: none;
+      height: 20px;
+    }
+
+    .scroll-section {
+      width: 80px;
+      margin-top: 40px;
+      padding: 10px 20px;
+    }
+#frameSlider {
+  width: 500px;}
+
+
+    .chart-card1{
+      background: white;
+border: #1e1e2f;
+ border: 2px solid #ccc;   
+ border-radius: 7px;
+      width: 1244px;
+      height: 581px;
+    }
+
+    .chart-card2{
+      background: white;
+      padding: 10px;
+      border: 1px solid #080707;
+      border-radius: 10px;
+      margin-bottom: 20px;
+      width: 1000px;
+    }
+   #donutChart {
+  width: 100%;
+  height: 280px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+    canvas {
+      width: 100% !important;
+      height: 240px !important;
+    }
+
+    @media screen and (max-width: 1000px) {
+      .layout {
+        flex-direction: column;
+      }
+      .left-panel,
+      .asset-summary-card {
+        width: 100%;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="navbar">
+    <div class="logo">Analytics <span style="color: #7f00ff;">Project</span></div>
+    <div class="nav-links">
+      <a href="#" class="active">Products</a>
+      <a href="#">Pie</a>
+      <a href="#">Bar</a>
+      <a href="#">Analytics</a>
+      <a href="#">Reports</a>
+    </div>
+    <div class="nav-buttons">
+      <button class="login-btn">Log In</button>
+      <button class="signup-btn">Sign Up →</button>
+    </div>
+  </div>
+
+  <div class="top-bar">
+    <!-- Gear Icon Button -->
+<button class="btn btn-sm btn-light rounded-circle" data-bs-toggle="modal" data-bs-target="#uploadModal">
+  <i class="fas fa-cog"></i>
+</button>
+
+<!-- Fetch Graphs Button -->
+<button id="fetchButton" class="btn btn-primary btn-sm ms-2">View Analytics</button>
+
+  
+    
+    <div class="toggle-mode">
+      
+      <button id="perFrameBtn" class="btn btn-primary btn-sm ms-2" onclick="setMode('frame')">Per Frame</button>
+      <button id="overallBtn" class="btn btn-primary btn-sm ms-2" onclick="setMode('overall')">Overall</button>
+    </div>
+    <div class="mini-boxes">
+      <div class="mini-box bg-total">
+        <i class="fas fa-database icon"></i>
+        <div><div class="value" id="boxTotal">0</div><div class="label">Total</div></div>
+      </div>
+      <div class="mini-box bg-machine">
+        <i class="fas fa-robot icon"></i>
+        <div><div class="value" id="boxMachine">0</div><div class="label">Machine</div></div>
+      </div>
+      <div class="mini-box bg-manual">
+        <i class="fas fa-user icon"></i>
+        <div><div class="value" id="boxManual">0</div><div class="label">Manual</div></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="layout">
+    <div class="left-panel">
+      
+      <div class="player-box" id="playerBox">
+        <span>No frame loaded</span>
+        <div class="controls">
+          <button onclick="prevFrame()">⏮️ Prev</button>
+          <button onclick="togglePlayPause()" id="playPause">▶️ Play</button>
+          <button onclick="nextFrame()">⏭️ Next</button>
+          <input type="range" id="frameSlider" min="0" value="0" step="1" onchange="goToFrame(this.value)" />
+        </div>
+      </div>
+    </div>
+    <div class="asset-summary-card">
+      <div class="card-header">
+      
+        
+        <i class="fas fa-chart-line"></i> Distribution Overview 
+        <div class="frame-id">Assets/Faults</div>
+      </div>
+      <div class="asset-list"></div>
+      <div class="asset-total">Total Assets <span>0</span></div>
+    </div>
+  </div>
+
+  <div class="scroll-section">
+  
+    <div class="chart-card1">
+      <h4>Graphical representation
+        
+      </h4>
+      <div id="donutChart"></div>
+      <h4>Machine and Manual</h4>
+      <canvas id="barChart"></canvas>
+    </div>
+    <!-- <div class="chart-card2">
+      <h4>Machine vs Manual</h4>
+      <canvas id="barChart"></canvas>
+    </div> -->
+  </div>
+  <!-- Upload Modal -->
+<div class="modal fade" id="uploadModal" tabindex="-1" aria-labelledby="uploadModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered" style="max-width: 360px;">
+    <div class="modal-content p-3 rounded">
+      <div class="modal-header border-0 pb-0">
+        <h5 class="modal-title" id="uploadModalLabel">Upload & Inference</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body">
+
+        <!-- Folder Upload -->
+        <label class="form-label">📁 Upload your video_data folder</label>
+        <input type="file" id="folderInput" class="form-control mb-3" webkitdirectory multiple>
+
+        <!-- Dropdown -->
+        <label class="form-label">Select Inference Type</label>
+        <select id="inferenceType" class="form-select mb-3">
+          <option selected disabled>Choose type</option>
+          <option value="NZ Assets">NZ Assets</option>
+          <option value="NZ Faults">NZ Faults</option>
+        </select>
+
+        <div class="d-grid">
+          <button class="btn btn-primary" data-bs-dismiss="modal" id="doneBtn">Done</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+
+  <script>
+  let uploadedFiles = [];          // All uploaded files (after filtered by inference folder)
+let selectedFolder = '';         // "NZ Assets" or "NZ Faults"
+let frames = [], jsons = [], currentIndex = 0, interval = null;
+let barChartInstance = null;
+let mode = 'frame';
+
+document.getElementById('doneBtn').addEventListener('click', () => {
+  const folderFiles = Array.from(document.getElementById('folderInput').files);
+  const selectedType = document.getElementById('inferenceType').value;
+
+  if (!selectedType || folderFiles.length === 0) {
+    alert('Please upload folder and select inference type.');
+    return;
+  }
+
+  // Store filtered files from selected subfolder
+  const folderName = selectedType === 'NZ Assets' ? 'NZ Assets' : 'NZ Faults';
+  uploadedFiles = folderFiles.filter(file =>
+    file.webkitRelativePath.includes(folderName)
+  );
+  selectedFolder = folderName;
+
+  console.log(`✅ Selected folder: ${selectedFolder}`);
+  console.log(`📁 Filtered files count: ${uploadedFiles.length}`);
+});
+
+document.getElementById('fetchButton').addEventListener('click', () => {
+  if (uploadedFiles.length === 0) {
+    alert('Please upload and select an inference type before fetching.');
+    return;
+  }
+
+  // Optional loading animation (replace with actual animation if desired)
+  document.getElementById('fetchButton').innerText = '⏳ Loading...';
+  document.getElementById('fetchButton').disabled = true;
+
+  setTimeout(() => {
+    handleFileChange({ target: { files: uploadedFiles } });
+    document.getElementById('fetchButton').innerText = 'Fetch Graphs';
+    document.getElementById('fetchButton').disabled = false;
+  }, 3000);
+});
+
+function handleFileChange(e) {
+  const files = Array.from(e.target.files);
+  frames = files.filter(f => f.name.endsWith('.jpg') || f.name.endsWith('.png'));
+  jsons = files.filter(f => f.name.endsWith('.json'));
+  frames.sort((a, b) => a.name.localeCompare(b.name));
+  jsons.sort((a, b) => a.name.localeCompare(b.name));
+  document.getElementById('frameSlider').max = frames.length - 1;
+  currentIndex = 0;
+  showFrame();
+  renderCharts();
+}
+
+function showFrame() {
+  if (frames.length === 0) return;
+  const reader = new FileReader();
+  reader.onload = () => {
+    document.getElementById('playerBox').innerHTML = `
+      <img src="${reader.result}" alt="Frame">
+      <div class="controls">
+        <button onclick="prevFrame()">⏮️ Prev</button>
+        <button onclick="togglePlayPause()" id="playPause">${interval ? '⏸️ Pause' : '▶️ Play'}</button>
+        <button onclick="nextFrame()">⏭️ Next</button>
+        <input type="range" id="frameSlider" min="0" value="${currentIndex}" step="1" onchange="goToFrame(this.value)" />
+      </div>
+    `;
+    if (mode === 'frame') renderCharts();
+  };
+  reader.readAsDataURL(frames[currentIndex]);
+}
+
+function nextFrame() {
+  if (currentIndex < frames.length - 1) {
+    currentIndex++;
+    showFrame();
+  }
+}
+
+function prevFrame() {
+  if (currentIndex > 0) {
+    currentIndex--;
+    showFrame();
+  }
+}
+
+function goToFrame(index) {
+  currentIndex = parseInt(index);
+  showFrame();
+}
+
+function togglePlayPause() {
+  const btn = document.getElementById('playPause');
+  if (interval) {
+    clearInterval(interval);
+    interval = null;
+    btn.textContent = '▶️ Play';
+  } else {
+    interval = setInterval(() => {
+      if (currentIndex >= frames.length - 1) return togglePlayPause();
+      currentIndex++;
+      showFrame();
+    }, 300);
+    btn.textContent = '⏸️ Pause';
+  }
+}
+
+function setMode(m) {
+  mode = m;
+  document.getElementById('perFrameBtn').classList.toggle('active', m === 'frame');
+  document.getElementById('overallBtn').classList.toggle('active', m === 'overall');
+  renderCharts();
+}
+
+function renderCharts() {
+  const pieData = [['Asset Type', 'Count']];
+  let ai = 0, manual = 0;
+  const assetMap = {};
+  const getData = (files) => Promise.all(files.map(f => new Promise(res => {
+    const r = new FileReader();
+    r.onload = () => {
+      try {
+        const data = JSON.parse(r.result);
+        const items = Array.isArray(data) ? data : [data];
+        items.forEach(({ description, source }) => {
+          if (description) {
+            assetMap[description] = assetMap[description] || { count: 0, source: source?.toLowerCase() || 'ai' };
+            assetMap[description].count++;
+            if (source?.toLowerCase() === 'manual') manual++;
+            else ai++;
+          }
+        });
+      } catch (err) {
+        console.error("Error parsing JSON:", f.name, err);
+      }
+      res();
+    };
+    r.readAsText(f);
+  })));
+  const filesToRead = mode === 'frame'
+    ? jsons.filter(f => f.name.startsWith(frames[currentIndex].name.replace(/\.(jpg|png)$/, '')))
+    : jsons;
+  getData(filesToRead).then(() => {
+    Object.entries(assetMap).forEach(([k, v]) => pieData.push([k, v.count]));
+    updateMiniBoxes(ai, manual);
+    drawDonutChart(pieData);
+    drawBarChart(ai, manual);
+    updateAssetSummary(assetMap, ai + manual);
+  });
+}
+
+function updateMiniBoxes(ai, manual) {
+  document.getElementById('boxTotal').textContent = ai + manual;
+  document.getElementById('boxMachine').textContent = ai;
+  document.getElementById('boxManual').textContent = manual;
+}
+
+function updateAssetSummary(assetCounts, total) {
+  const container = document.querySelector('.asset-list');
+  container.innerHTML = '';
+  if (total === 0) {
+    container.innerHTML = '<p>No assets found.</p>';
+    return;
+  }
+  const sorted = Object.entries(assetCounts).sort((a, b) => b[1].count - a[1].count);
+  sorted.forEach(([name, { count, source }]) => {
+    const pct = ((count / total) * 100).toFixed(1);
+    const dot = source === 'manual' ? 'purple' : 'green';
+    const fill = source === 'manual' ? 'purple' : 'green';
+    const badge = source === 'manual' ? 'manual' : 'ai';
+    container.innerHTML += `
+      <div class="asset-item">
+        <span class="dot ${dot}"></span> ${name}
+        <strong>${count}</strong> <span class="percent">(${pct}%)</span>
+        <div class="bar"><div class="fill ${fill}" style="width: ${pct}%"></div></div>
+        <span class="source-badge ${badge}">${source === 'manual' ? 'Manual' : 'AI'}</span>
+      </div>`;
+  });
+  document.querySelector('.asset-total span').textContent = total;
+}
+
+function drawDonutChart(dataArray) {
+  const container = document.getElementById('donutChart');
+  if (!container) return;
+
+  echarts.dispose(container);
+  const chart = echarts.init(container);
+
+  const chartData = dataArray.slice(1).map(([name, value]) => ({ name, value }));
+  const totalAssets = chartData.reduce((sum, item) => sum + item.value, 0);
+
+  const option = {
+    tooltip: { trigger: 'item' },
+    legend: {
+      orient: 'vertical',
+      left: '60%', // 💡 Use "left" instead of "screenLeft"
+      top: 'middle',
+      icon: 'roundRect',
+      itemWidth: 20,
+      itemHeight: 18,
+      itemGap: 10,
+      textStyle: {
+        fontSize: 13,
+        color: '#999'
+      }
+    },
+    series: [
+      {
+        name: 'Asset Types',
+        type: 'pie',
+        radius: ['60%', '80%'],
+        center: ['30%', '50%'], // ✅ same center for donut
+        startAngle: 90,
+        clockwise: true,
+        roundCap: true,
+        avoidLabelOverlap: false,
+        itemStyle: {
+          borderRadius: 9,
+          borderColor: '#fff',
+          borderWidth: 4
+        },
+        label: { show: false },
+        labelLine: { show: false },
+        data: chartData
+      },
+      {
+        type: 'pie',
+        radius: ['50%', '85%'],
+        center: ['30%', '50%'], // ✅ same center for label
+        label: {
+          position: 'center',
+          formatter: `{a|${totalAssets}}\n{b|Assets Found}`,
+          rich: {
+            a: {
+              fontSize: 26,
+              fontWeight: 'bold',
+              color: '#111'
+            },
+            b: {
+              fontSize: 14,
+              color: '#666'
+            }
+          }
+        },
+        labelLine: { show: false },
+        data: [{ value: 1, itemStyle: { color: 'transparent' } }],
+        silent: true,
+        z: 2
+      }
+    ],
+    color: ['#4C84FF', '#FFD166', '#FF6B6B', '#06D6A0', '#8338EC', '#FF9F1C']
+  };
+
+  chart.setOption(option);
+  window.addEventListener('resize', () => chart.resize());
+}
+
+
+function drawBarChart(aiCount, manualCount) {
+  const ctx = document.getElementById('barChart');
+  if (!ctx) return;
+  const config = {
+    type: 'bar',
+    data: {
+      labels: ['AI Generated', 'Manual'],
+      datasets: [{
+        label: 'Asset Count',
+        data: [aiCount, manualCount],
+        backgroundColor: ['#3498db', '#e74c3c']
+      }]
+    },
+    options: {
+      responsive: true,
+      scales: {
+        y: {
+          beginAtZero: true,
+          ticks: { stepSize: 1 }
+        }
+      }
+    }
+  };
+  if (barChartInstance) {
+    barChartInstance.data.datasets[0].data = [aiCount, manualCount];
+    barChartInstance.update();
+  } else {
+    barChartInstance = new Chart(ctx.getContext('2d'), config);
+  }
+}
+
+  </script>
+</body>
+</html>
